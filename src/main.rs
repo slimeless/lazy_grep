@@ -1,5 +1,6 @@
 mod grep;
 use clap::Parser;
+use clap_stdin::MaybeStdin;
 use grep::GetContent;
 use regex::Regex;
 use std::{fs::File, io::Result, path::Path};
@@ -7,18 +8,20 @@ use std::{fs::File, io::Result, path::Path};
 #[derive(Parser)]
 struct Cli {
     pattern: String,
-    data: String,
+    #[clap(default_value = "-")]
+    data: MaybeStdin<String>,
 }
 
 fn main() -> Result<()> {
     let args = Cli::parse();
-    let new_path = Path::new(&args.data);
+    let binding = args.data.to_string();
+    let new_path = Path::new(&binding);
     let regex = Regex::new(&args.pattern).unwrap();
     let matches = if new_path.exists() && new_path.is_file() {
         let file = File::open(new_path)?;
         just_grep(file, regex)
     } else {
-        just_grep(args.data, regex)
+        just_grep(args.data.to_string(), regex)
     };
     print_result(matches);
 
