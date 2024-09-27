@@ -1,4 +1,0 @@
-This is a test of the word length.
-Here are some words: supercalifragilistic, extraordinary, and uncharacteristically.
-Short words and long words are both present.
-
