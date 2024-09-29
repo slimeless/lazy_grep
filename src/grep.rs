@@ -7,6 +7,8 @@ use std::{
 
 use regex::Regex;
 
+use crate::argtype::{ArgType, GetArgType};
+
 pub trait GetContent {
     fn get_content(&self, re: Regex) -> Result<Vec<String>, Box<dyn Error>>;
 }
@@ -39,17 +41,17 @@ impl GetContent for File {
 impl GetContent for Path {
     fn get_content(&self, re: Regex) -> Result<Vec<String>, Box<dyn Error>> {
         let mut result = Vec::<String>::new();
-        for entry in fs::read_dir(self)? {
-            if let Ok(entry) = entry {
-                if entry.path().is_file() {
+        for entry in (fs::read_dir(self)?).flatten() {
+            match entry.path().get_argtype() {
+                ArgType::File => {
                     let file = File::open(entry.path())?;
                     result.append(&mut file.get_content(re.clone())?);
-                } else {
+                }
+                ArgType::Directory => {
                     result.append(&mut entry.path().get_content(re.clone())?);
                 }
-            } else {
-                eprintln!("Oooopsi")
-            }
+                ArgType::Stdin => {}
+            };
         }
 
         Ok(result)
