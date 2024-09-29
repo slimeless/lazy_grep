@@ -25,12 +25,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     let matches = match new_path.get_argtype() {
         ArgType::File => {
             let file = File::open(new_path)?;
-            file.get_content(regex, new_path.display().to_string())?
+            file.get_content(&regex, new_path.display().to_string())?
         }
-        ArgType::Directory => new_path.get_content(regex, String::new())?,
-        ArgType::Stdin => binding.get_content(regex, String::new())?,
+        ArgType::Directory => new_path.get_content(&regex, String::new())?,
+        ArgType::Stdin => binding.get_content(&regex, String::new())?,
     };
-    display(matches);
+    display(matches, regex);
 
     Ok(())
 }
