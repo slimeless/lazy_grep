@@ -1,11 +1,14 @@
 mod argtype;
 mod grep;
+mod view;
+
 use argtype::{ArgType, GetArgType};
 use clap::Parser;
 use clap_stdin::MaybeStdin;
 use grep::GetContent;
 use regex::Regex;
 use std::{error::Error, fs::File, path::Path};
+use view::display;
 
 #[derive(Parser)]
 struct Cli {
@@ -22,18 +25,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     let matches = match new_path.get_argtype() {
         ArgType::File => {
             let file = File::open(new_path)?;
-            file.get_content(regex)?
+            file.get_content(regex, new_path.display().to_string())?
         }
-        ArgType::Directory => new_path.get_content(regex)?,
-        ArgType::Stdin => binding.get_content(regex)?,
+        ArgType::Directory => new_path.get_content(regex, String::new())?,
+        ArgType::Stdin => binding.get_content(regex, String::new())?,
     };
-    print_result(matches);
+    display(matches);
 
     Ok(())
-}
-fn print_result(res: Vec<String>) {
-    println!("count of pattern: {}", res.len());
-    for line in res {
-        println!("{line}")
-    }
 }
