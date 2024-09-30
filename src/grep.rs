@@ -8,7 +8,10 @@ use std::{
 use owo_colors::OwoColorize;
 use regex::Regex;
 
-use crate::argtype::{ArgType, GetArgType};
+use crate::{
+    argtype::{ArgType, GetArgType},
+    view::Highlight,
+};
 
 pub trait GetContent {
     fn get_content(&self, re: &Regex, prefix: String) -> Result<Vec<String>, Box<dyn Error>>;
@@ -18,8 +21,12 @@ impl GetContent for String {
     fn get_content(&self, re: &Regex, prefix: String) -> Result<Vec<String>, Box<dyn Error>> {
         let mut result = Vec::<String>::new();
         for line in self.lines() {
-            if re.is_match(line) {
-                result.push(format!("{}{}", prefix.bold().magenta(), line));
+            if re.is_match(line.trim()) {
+                result.push(format!(
+                    "{}{}",
+                    prefix.bold().magenta(),
+                    line.to_string().highlight(re)
+                ));
             }
         }
         Ok(result)
@@ -32,7 +39,11 @@ impl GetContent for File {
         let mut result = Vec::<String>::new();
         for line in reader.lines().map_while(Result::ok) {
             if re.is_match(&line) {
-                result.push(format!("{}{}", prefix.bold().magenta(), line));
+                result.push(format!(
+                    "{}: {}",
+                    prefix.bold().magenta(),
+                    line.to_string().highlight(re)
+                ));
             }
         }
         Ok(result)
@@ -46,7 +57,7 @@ impl GetContent for Path {
             match entry.path().get_argtype() {
                 ArgType::File => {
                     let file = File::open(entry.path())?;
-                    let pref = format!("{}: ", entry.path().display().to_string().bold().magenta());
+                    let pref = format!("{}", entry.path().display().to_string().bold().magenta());
                     result.append(&mut file.get_content(&re.clone(), pref)?);
                 }
                 ArgType::Directory => {
