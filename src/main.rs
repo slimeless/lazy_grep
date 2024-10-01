@@ -1,7 +1,7 @@
 use clap::Parser;
-use clap_stdin::MaybeStdin;
 use regex::Regex;
 use rustgrep::execute_grep;
+use rustgrep::stdin::MaybeStdin;
 use rustgrep::view::display;
 use std::error::Error;
 
@@ -11,12 +11,13 @@ struct Cli {
     pattern: String,
     #[arg(short, long)]
     #[clap(default_value = "-")]
-    data: MaybeStdin<String>,
+    data: MaybeStdin,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
     let args = Cli::parse();
     let binding = args.data.to_string();
+    println!("{binding}");
     let regex = Regex::new(&args.pattern).unwrap();
     let matches = execute_grep(binding, &regex)?;
     display(matches, regex);

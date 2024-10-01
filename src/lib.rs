@@ -1,5 +1,6 @@
 mod argtype;
 mod grep;
+pub mod stdin;
 pub mod view;
 
 use argtype::{ArgType, GetArgType};

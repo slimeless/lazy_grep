@@ -37,7 +37,7 @@ impl GetContent for String {
         let mut result = Vec::<String>::new();
         for line in self.lines() {
             if re.is_match(line.trim()) {
-                result.push(line.to_string());
+                result.push(line.to_string().highlight(re));
             }
         }
         Ok(result)
