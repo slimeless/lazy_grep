@@ -1,15 +1,11 @@
 use std::{
     fmt::Display,
     io::{stdin, Read},
-    path::{Path, PathBuf},
     str::FromStr,
 };
 
 #[derive(Debug, Clone)]
-pub enum MaybeStdin {
-    String(String),
-    Path(PathBuf),
-}
+pub struct MaybeStdin(String);
 
 impl FromStr for MaybeStdin {
     type Err = &'static str;
@@ -20,23 +16,18 @@ impl FromStr for MaybeStdin {
             let _ = stdin()
                 .read_to_string(&mut buff)
                 .map_err(|_| "failed read to string");
-            Ok(MaybeStdin::String(buff))
-        } else {
-            let path = Path::new(s);
-            if path.exists() {
-                Ok(MaybeStdin::Path(path.to_path_buf()))
-            } else {
-                Err("Provied path is invalid")
+            if buff.trim().is_empty() {
+                return Err("stdin is clear");
             }
+            Ok(MaybeStdin(buff))
+        } else {
+            Ok(MaybeStdin(s.to_string()))
         }
     }
 }
 
 impl Display for MaybeStdin {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            MaybeStdin::String(str) => write!(f, "{str}"),
-            MaybeStdin::Path(path) => write!(f, "{}", path.display()),
-        }
+        write!(f, "{}", self.0)
     }
 }
