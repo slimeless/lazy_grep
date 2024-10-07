@@ -7,19 +7,21 @@ use std::{
 
 use tempfile::{NamedTempFile, TempDir};
 
-fn test_cli(data: String, contains: &str) -> bool {
+fn test_cli(data: String, contains: &str, additional_args: Option<&str>) -> bool {
     let output = Command::new("cargo")
         .arg("run")
         .arg("--")
         .arg("T")
         .arg(data)
+        .arg(additional_args.unwrap_or("-e some"))
         .output()
         .expect("failed to run cargo run");
     let stdout = String::from_utf8_lossy(&output.stdout);
+    println!("{stdout}");
     stdout.contains(contains)
 }
 fn create_temp_file(content: &str, temp_dir: &TempDir) -> Result<(), Box<dyn Error>> {
-    let name = format!("temp_file_{}.txt", uuid::Uuid::new_v4());
+    let name = format!("temp_file_{content}.txt");
     let file_path = temp_dir.path().join(name);
     let mut file = File::create(file_path)?;
     writeln!(file, "{}", content)?;
@@ -66,15 +68,25 @@ fn test_cli_with_file() {
         assert_eq!("Thats good", text_from_file.trim());
     }
     let path = temp_file.path().display().to_string();
-    assert!(test_cli(path, "count of matches: 1"))
+    assert!(test_cli(path, "count of matches: 1", None))
 }
 
 #[test]
 fn test_cli_with_dir() {
     let temp_dir = TempDir::new().expect("failed to create temp dir");
     let _ = create_temp_file("Thats good", &temp_dir);
-    let _ = create_temp_file("Thats good", &temp_dir);
+    let _ = create_temp_file("Thats good1", &temp_dir);
     let _ = create_temp_file("Not bad", &temp_dir);
     let path = format!("{}/", temp_dir.path().display());
-    assert!(test_cli(path, "count of matches: 2"))
+    assert!(test_cli(path, "count of matches: 2", None))
+}
+
+#[test]
+fn test_cli_with_excludes() {
+    let temp_dir = TempDir::new().expect("failed to create temp dir");
+    let _ = create_temp_file("Thats good", &temp_dir);
+    let _ = create_temp_file("Thats not good", &temp_dir);
+    let _ = create_temp_file("Thats very good", &temp_dir);
+    let path = format!("{}/", temp_dir.path().display());
+    assert!(test_cli(path, "count of matches: 2", Some("-e very")))
 }
