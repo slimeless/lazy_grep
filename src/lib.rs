@@ -36,7 +36,6 @@ pub fn execute_grep(
 fn sort_by_excludes(matches: &mut Vec<String>, excludes: &mut Vec<Regex>) -> Vec<String> {
     let res = matches;
     while let Some(regex) = excludes.pop() {
-        println!("{regex:?}");
         sort_dir_vec(regex, res);
     }
     res.to_vec()

@@ -16,20 +16,16 @@ pub trait Highlight {
 
 impl Highlight for String {
     fn highlight(&self, re: &Regex) -> String {
-        if let Some(matched) = re.find(self) {
-            let range = matched.range();
-            let before = &self[..range.start];
-            let colored_text = &self[range.start..range.end];
-            let after = &self[range.end..];
+        let mut result = String::new();
+        let mut last_end = 0;
 
-            let mut result = String::with_capacity(self.len() + 10);
-            result.push_str(before);
-            result.push_str(&colored_text.bold().red().to_string());
-            result.push_str(after);
-
-            result
-        } else {
-            self.clone()
+        for matched in re.find_iter(self) {
+            result.push_str(&self[last_end..matched.start()]);
+            result.push_str(&matched.as_str().bold().red().to_string());
+            last_end = matched.end();
         }
+
+        result.push_str(&self[last_end..]);
+        result
     }
 }

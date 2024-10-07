@@ -19,7 +19,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     let binding = args.data.to_string();
     let regex = Regex::new(&args.pattern).unwrap();
     let mut excludes = args.exclude.unwrap_or_default();
-    println!("{excludes:?}");
     let matches = execute_grep(binding, &regex, &mut excludes)?;
     display(matches, regex);
 
